@@ -1,10 +1,40 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
+"use client";
+
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useForm } from "react-hook-form";
+import { usePostSignupMutation } from "@/hooks/api-hooks/useAuthQuery";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+import Loader from "@/components/loader";
 
 export default function SignupPage() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  const router = useRouter();
+
+  const { mutate, isPending } = usePostSignupMutation({
+    onSuccess: (data) => {
+      toast.success(data.data.message ?? "Signup successful!");
+      router.push("/login");
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error(error.data.message ?? "Signup failed!");
+    },
+  });
+
+  const onsubmit = (data) => {
+    mutate(data);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
@@ -25,25 +55,66 @@ export default function SignupPage() {
           </div>
 
           <div className="bg-white p-8 border border-gray-200 rounded-lg shadow-sm">
-            <form className="space-y-6">
+            <form onSubmit={handleSubmit(onsubmit)} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name">Full name</Label>
-                <Input id="name" type="text" placeholder="John Doe" required className="w-full" />
+                <div>
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="John Doe"
+                    className="w-full"
+                    {...register("name", { required: true })}
+                  />
+                  {errors.name && (
+                    <span className="text-red-500 text-xs">
+                      This field is required
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="you@example.com" required className="w-full" />
+                <div>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    className="w-full"
+                    {...register("email", { required: true })}
+                  />
+                  {errors.email && (
+                    <span className="text-red-500 text-xs">
+                      This field is required
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" placeholder="••••••••" required className="w-full" />
-                <p className="text-xs text-gray-500">Must be at least 8 characters long</p>
+                <div>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    className="w-full"
+                    {...register("password", { required: true })}
+                  />
+                  {errors.password && (
+                    <span className="text-red-500 text-xs">
+                      This field is required
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500">
+                  Must be at least 5 characters long
+                </p>
               </div>
 
               <div className="flex items-center space-x-2">
-                <Checkbox id="terms" required />
+                <Checkbox id="terms"  />
                 <Label htmlFor="terms" className="text-sm font-normal">
                   I agree to the{" "}
                   <Link href="/terms" className="text-black hover:underline">
@@ -56,8 +127,12 @@ export default function SignupPage() {
                 </Label>
               </div>
 
-              <Button type="submit" className="w-full rounded-full bg-black text-white hover:bg-gray-800">
-                Create account
+              <Button
+                type="submit"
+                className="w-full rounded-full bg-black text-white hover:bg-gray-800 cursor-pointer"
+                disabled={isPending}
+              >
+                {isPending ? <Loader /> : "Create account"}
               </Button>
             </form>
           </div>
@@ -65,7 +140,10 @@ export default function SignupPage() {
           <div className="text-center">
             <p className="text-sm text-gray-600">
               Already have an account?{" "}
-              <Link href="/login" className="font-medium text-black hover:underline">
+              <Link
+                href="/login"
+                className="font-medium text-black hover:underline"
+              >
                 Sign in
               </Link>
             </p>
@@ -90,6 +168,5 @@ export default function SignupPage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
-

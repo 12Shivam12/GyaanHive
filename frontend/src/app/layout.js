@@ -1,5 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { QueryClient } from "@tanstack/react-query";
+import QueryProvider from "@/components/queryClientProvider";
+import { ToastContainer } from "react-toastify";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,12 +20,16 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const queryClient = new QueryClient();
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <QueryProvider>
+          <ToastContainer position="bottom-right" autoClose={3000} />
+          {children}
+        </QueryProvider>
       </body>
     </html>
   );

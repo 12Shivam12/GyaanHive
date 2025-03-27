@@ -1,10 +1,37 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useForm } from "react-hook-form";
+import { usePostLoginMutation } from "@/hooks/api-hooks/useAuthQuery";
+import { toast } from "react-toastify";
+import Loader from "@/components/loader";
 
 export default function LoginPage() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  const { mutate, isPending } = usePostLoginMutation({
+    onSuccess: (data) => {
+      console.log("Login Successfull");
+      toast.success(data.data.message ?? "Login Successfull");
+    },
+    onError: (error) => {
+      toast.error(error.data.message);
+    },
+  });
+
+  const onsubmit = async (data) => {
+    console.log("data", data);
+    mutate(data);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
@@ -25,16 +52,23 @@ export default function LoginPage() {
           </div>
 
           <div className="bg-white p-8 border border-gray-200 rounded-lg shadow-sm">
-            <form className="space-y-6">
+            <form onSubmit={handleSubmit(onsubmit)} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  required
-                  className="w-full"
-                />
+                <div>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    className="w-full"
+                    {...register("email", { required: true })}
+                  />
+                  {errors.email && (
+                    <span className="text-red-500 text-xs ">
+                      This field is required
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -47,13 +81,20 @@ export default function LoginPage() {
                     Forgot password?
                   </Link>
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  required
-                  className="w-full"
-                />
+                <div>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    className="w-full"
+                    {...register("password", { required: true })}
+                  />
+                  {errors.password && (
+                    <span className="text-red-500 text-xs">
+                      This field is required
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -66,8 +107,9 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 className="w-full rounded-full bg-black text-white hover:bg-gray-800"
+                disabled={isPending}
               >
-                Sign in
+                {isPending ? <Loader/> : 'Login'}
               </Button>
             </form>
           </div>
